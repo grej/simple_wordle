@@ -3,12 +3,17 @@ import numpy as np
 
 
 class WordleGame:
-    """This is a class for playing a Wordle Style game, given a corpus of
-    words organized into a dataframe with the column structure as follows:
+    """A class for playing a Wordle Style game. Designed around building a simple 
+    solver for the Irish language version of the game Foclach.
+    
+    Object must be instantiated with a dataframe having the column structure as follows:
+    
     word 	chars 	1 	2 	3 	4 	5   ... [letter_tokens]
     
-    Usage: instantiate a game using the corpus ```g = WordleGame(corpus_df)```
+    Usage: instantiate a game using the corpus 
+        >>> g = WordleGame(corpus_df)
         >>> guess = g.get_next_guess(); guess
+        
         # input the guess into the game and get the clues in return
         # you can either use an array of ['gray', 'yellow', 'green'] 
         # or you can use a string. # If using a string, the key is:
@@ -17,6 +22,9 @@ class WordleGame:
         #   r = gray (letter does not exists in the word)        
         
         >>> g.update_clues_and_guess('gyrrr')
+        >>> guess = g.get_next_guess(); guess
+        
+        ...
     
     
     :class: WordleGame

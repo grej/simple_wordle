@@ -23,12 +23,18 @@ class WordleGame:
 
     :param words_df: the corpus, as a dataframe structured with columns as 
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        word 	chars 	1 	2 	3 	4 	5   ... [letters]
+        word 	chars 	1 	2 	3 	4 	5   ... [letters] ... score 
         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         
         and each row as a token
         
-    :usage: 
+       	word 	chars 	1 	2 	3 	4 	5 	a 	    c 	    á 	    ...     score	
+        srian 	5 	    s 	r 	i 	a 	n 	True 	False 	False 	...     0.1
+        hairc 	5 	    h 	a 	i 	r 	c 	True 	True 	False 	...     0.001
+        chiar 	5 	    c 	h 	i 	a 	r 	True 	True    False   ...     0.2
+        
+        The final score column is used to create the probability distribution
+        of tokens from which the guess will be selected
     """
     
     def __init__(self, words_df):

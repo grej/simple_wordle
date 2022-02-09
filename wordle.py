@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import re
+
 
 class WordleGame:
     """This is a class for playing a Wordle Style game, given a corpus of
@@ -36,48 +36,52 @@ class WordleGame:
         self.guesses = []
         self.guesses_and_results = []
         self.corpus = words_df
+        self.filtered_corpus = words_df
         
-    def make_guess(self, filtered_db):
-        guess_idx = np.random.choice(filtered_db.index, p=(filtered_db['score'] / filtered_db['score'].sum()).values)
-        return db.loc[guess_idx]['word']
+    def make_guess(self):
+        guess_idx = np.random.choice(self.filtered_corpus.index, p=(self.filtered_corpus['score'] / 
+                                                                self.filtered_corpus['score'].sum()).values)
+        return self.filtered_corpus.loc[guess_idx]['word']
     
-    def filter_db_from_masks(self, masks, db):
-        current_masks = np.array(masks).prod(axis=0).astype(np.bool_)
-        return db[current_masks]    
+    def filter_db_from_masks(self):
+        if len(self.current_masks) > 0:
+            mask = np.array(self.current_masks).prod(axis=0).astype(np.bool_)
+            self.filtered_corpus = self.corpus[mask]        
+        return self.filtered_corpus
     
     def next_best_guesses(self):
-        if self.current_masks is None or len(self.current_masks) == 0:
-            filtered_db = self.corpus
-        else:
-            filtered_db = self.filter_db_from_masks(self.current_masks, self.corpus)
-        return filtered_db
+        return self.filtered_corpus
     
-    def masks_from_guess(self, guess, list_of_colors, db, masks=[]):
+    def masks_from_guess(self, guess, list_of_colors):
         # takes a word and list of colors, the pandas dataframe (db), and the
         # list of known masks, if it exists
         # outputs a mask to filter the words based on
         # the constraints resulting from that guess
         # input of list of colors can either be a list of ['Gray', 'Green', 'Yellow']
         # or a string of ['GYR'], where R is gray
+        db = self.corpus
         for idx, l in enumerate(guess):
             if list_of_colors[idx].lower() in ["g", "green"]:
+                print(f'{l} g')
                 # if it's green then the letter in position idx is correct
                 # which means the word has the letter, and it's in that position
                 position = str(idx+1) # this is the string position to reference the db
-                masks.append(db[position] == l)
-                masks.append(db[l] == True)
-            elif list_of_colors[idx].lower() in ["g", "yellow"]:
+                self.current_masks.append(db[position] == l)
+                self.current_masks.append(db[l] == True)
+            elif list_of_colors[idx].lower() in ["y", "yellow"]:
+                print(f'{l} y')
                 # here the letter is in the secret word, but 
                 # the letter is not in the right position
                 position = str(idx+1) # this is the string position to reference the db
                 # so we know that the letter at this position is not this letter
-                masks.append(db[position] != l)            
+                self.current_masks.append(db[position] != l)            
                 # and we know that the letter is in the word
-                masks.append(db[l] == True)
+                self.current_masks.append(db[l] == True)
             elif list_of_colors[idx].lower() in ["r", "gray", "grey"]:
+                print(f'{l} r')
                 # here the letter is not in the secret word
-                masks.append(db[l] == False)
-        return masks
+                self.current_masks.append(db[l] == False)
+        return self.current_masks
     
     def evaluate_guess(self, guess, secret_word):
         # evaluates a guess against the secret_word and outputs
@@ -94,13 +98,12 @@ class WordleGame:
         return colors
     
     def get_next_guess(self):
-        possibles = self.next_best_guesses()        
-        guess = possibles.iloc[0]['word']
+        filtered_db = self.filter_db_from_masks()
+        guess = self.make_guess()
         self.guesses.append(guess)
         return guess
     
     def update_clues_and_guess(self, clues, guess=None):
         if guess is None:
             guess = self.guesses[-1]
-        self.current_masks = self.masks_from_guess(guess, clues, self.corpus, 
-                                                   masks=self.current_masks)
+        self.masks_from_guess(guess, clues)
